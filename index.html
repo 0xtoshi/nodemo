@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="keywords" content="" />
+	<meta name="author" content="" />
+	<meta name="robots" content="" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Snapshot.id BSC Monitor" />
+	<meta property="og:title" content="Snapshot.id BSC Monitor" />
+	<meta property="og:description" content="Snapshot.id BSC Monitor" />
+	<meta property="og:image" content="" />
+	<meta name="format-detection" content="telephone=no">
+	
+	<!-- PAGE TITLE HERE -->
+	<title>Snapshot.ID - BSC Monitor</title>
+	
+	<!-- FAVICONS ICON -->
+	<link rel="shortcut icon" type="image/png" href="images/favicon.png" />
+	<link href="./vendor/jquery-nice-select/css/nice-select.css" rel="stylesheet">
+    <link href="./css/style.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <!--*******************
+        Preloader start
+    ********************-->
+   <div id="preloader">
+		<div class="lds-ripple">
+			<div></div>
+			<div></div>
+		</div>
+    </div>
+    <!--*******************
+        Preloader end
+    ********************-->
+
+
+    <!--**********************************
+        Main wrapper start
+    ***********************************-->
+    <div id="main-wrapper">
+
+		
+
+<div class="container">
+            <div class="container-fluid">
+				<br/>
+				<div class="row page-titles">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item active"><a href="#"><h2 class="text-green">SNAPSHOT.ID | BSC Node Tracker </h2></a></li>
+					</ol>
+                </div>
+
+				<div class="card text-white bg-primary">
+					<div class="card-header">
+						<h5 class="card-title text-white">Track Available Node</h5>
+					</div>
+					
+				</div>
+
+
+                <div class="card">
+					<div class="card-header">
+						<h4 class="card-title">Node List</h4>
+					</div>
+					<div class="card-body">
+						<div class="table-responsive">
+							<table class="table table-responsive-md">
+								<thead>
+									<tr>
+										
+									
+										<th><strong>ENDPOINT</strong></th>
+										<th><strong>Block Time</strong></th>
+										<th><strong>Block Height</strong></th>
+										<th><strong>Status</strong></th>
+										<th><strong>ORG</strong></th>
+										<th><strong>Region</strong></th>
+										<th><strong>Country</strong></th>
+									</tr>
+								</thead>
+								<tbody id="node">
+									
+									
+
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+            </div>
+        </div>
+      
+        
+    </div>
+    <!--**********************************
+        Main wrapper end
+    ***********************************-->
+
+    <!--**********************************
+        Scripts
+    ***********************************-->
+    <!-- Required vendors -->
+    <script src="./vendor/global/global.min.js"></script>
+	<script src="vendor/jquery-nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="./js/custom.min.js"></script>
+	<script src="./js/dlabnav-init.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.6.1-rc.0/web3.min.js" integrity="sha512-+4Gl8sbHe5qD5EQiPtIva4be9TwUmmzgYJUdGbhsLYNegQw4Quda/4QdZpJzx8cHq2s1F4PoIpAnERQ0hHTcNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdn.jsdelivr.net/gh/alfg/ping.js@0.2.2/dist/ping.min.js" type="text/javascript"></script>
+
+
+	<script>
+		$.getJSON( "rpc.json", function( data ) {
+		console.log(data);
+
+		$.each( data , (key, value) => {
+			var endpoint = value.endpoint;
+			var wss = endpoint.replace("http://", "");
+			wss = wss.replace(':8546/',"");
+			$('#node').append(`<tr id="${value.id}">
+										
+										
+										<td><h3><strong class="badge badge-primary light">${wss}</strong></strong></span></h3></div></td>
+										<td><h3><span id="ping-${value.id}"></span><h3></td>
+										<td><h3><span id="block-${value.id}"></span> </h3></td>
+										<td><h3> <span id="status-${value.id}"> </h3></span> </td>
+										<td><span> ${value.org}</span> </td>
+										<td> <span> ${value.region} </span> </td>
+										<td> <span> ${value.country} </span> </td>
+									</tr>`);
+		})
+		});
+
+		var p = new Ping();
+		
+
+			function PINGSERVER() {
+			$.getJSON( "rpc.json", function( data ) {
+			$.each( data , (key, value) => {
+				p.ping(value.endpoint, function(err, data) {
+				console.log(data);
+
+
+				if(data >= 10 && data <= 380) {
+					
+					flash($('#ping-'+value.id).removeClass());
+					$('#ping-'+value.id).html(`<strong> ${data} ms </strong>`).addClass('badge badge-primary light');
+
+				}else if ( data >= 380 && data <= 600 ){
+					flash($('#ping-'+value.id).removeClass());
+					$('#ping-'+value.id).html(`<strong> ${data} ms </strong>`).addClass('badge badge-warning light');
+
+				}else{
+					flash($('#ping-'+value.id).removeClass());
+					$('#ping-'+value.id).html(`<strong> ${data} ms </strong>`).addClass('badge badge-danger light');
+
+				}
+				
+						});
+					})		
+				});
+			}
+
+
+
+			function getBlock() {
+				$.getJSON( "rpc.json", function( data ) {
+					$.each( data , (key, value) => {
+						
+						var endpoint = value.endpoint;
+						var wss = endpoint.replace("http://", "ws://");
+						
+						Web3Block(value.id,wss);
+						console.log(wss);
+
+						
+					})		
+				});
+			}
+
+
+
+			async function Web3Block(id,endpoint)
+			{
+				//console.log(id);
+				const web3  = new Web3(endpoint);
+				
+				web3.eth.subscribe('newBlockHeaders', async function (err, result) {
+					var start = getCookie(`start-${id}`);
+					if(!err) {
+						$('#status-'+id).html(`<div class="d-flex align-items-center"><i class="fa fa-circle text-success me-1"></i><strong> Up</strong></div>`);
+						flash($('#block-'+id).html(`<strong> ${result.number}</strong>`).addClass('badge badge-success light'));
+						var end = new Date().getTime();
+						var data = end - start;
+						createCookie(`start-${id}`, new Date().getTime(), '1');
+						if(data >= 10 && data <= 380) {
+					
+						flash($('#ping-'+id).removeClass());
+							$('#ping-'+id).html(`<strong> ${data} ms </strong>`).addClass('badge badge-primary light');
+
+						}else if ( data >= 380 && data <= 600 ){
+							flash($('#ping-'+id).removeClass());
+							$('#ping-'+id).html(`<strong> ${data} ms </strong>`).addClass('badge badge-warning light');
+
+						}else{
+							flash($('#ping-'+id).removeClass());
+							$('#ping-'+id).html(`<strong> ${data} ms </strong>`).addClass('badge badge-danger light');
+
+						}
+					}else if(result.length == 0){
+						$('#'+id).remove();
+					
+					}else{
+						flash($('#status-'+id).html(`<div class="d-flex align-items-center"><i class="fa fa-circle text-danger me-1"></i><strong> Down</strong></div>`));
+						$('#'+id).remove();
+					}
+				});				
+			}
+
+			
+
+		function onLoad(loading, loaded) {
+			if(document.readyState === 'complete'){
+				return loaded();
+			}
+			loading();
+			if (window.addEventListener) {
+				window.addEventListener('load', loaded, false);
+			}
+			else if (window.attachEvent) {
+				window.attachEvent('onload', loaded);
+			}
+		};
+
+		onLoad(function(){
+		console.log('I am waiting for the page to be loaded');
+		},
+		function(){
+			//PINGSERVER();
+		});
+
+		setInterval(function(){ 
+			//PINGSERVER();
+		}, 5000);
+
+
+		var flash = function(elements) {
+		var opacity = 100;
+		var color = "0,255,0" // has to be in this format since we use rgba
+		var interval = setInterval(function() {
+			opacity -= 3;
+			if (opacity <= 0) clearInterval(interval);
+			$(elements).css({background: "rgba("+color+", "+opacity/100+")"});
+		}, 30)
+		};
+
+		var DEBUG = false;
+if(!DEBUG){
+    if(!window.console) window.console = {};
+    var methods = ["log", "debug", "warn", "info"];
+    for(var i=0;i<methods.length;i++){
+        console[methods[i]] = function(){};
+    }
+}
+
+
+getBlock();
+
+function createCookie(name, value, days) {
+    var expires;
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toGMTString();
+    }
+    else {
+        expires = "";
+    }
+    document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function getCookie(c_name) {
+    if (document.cookie.length > 0) {
+        c_start = document.cookie.indexOf(c_name + "=");
+        if (c_start != -1) {
+            c_start = c_start + c_name.length + 1;
+            c_end = document.cookie.indexOf(";", c_start);
+            if (c_end == -1) {
+                c_end = document.cookie.length;
+            }
+            return unescape(document.cookie.substring(c_start, c_end));
+        }
+    }
+    return "";
+}
+		
+	</script>
+   
+</body>
+</html>
